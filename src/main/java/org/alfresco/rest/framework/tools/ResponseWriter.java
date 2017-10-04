@@ -42,6 +42,7 @@ import org.alfresco.rest.framework.resource.parameters.Params;
 import org.alfresco.rest.framework.webscripts.WithResponse;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.http.HttpStatus;
 import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.map.JsonMappingException;
@@ -213,6 +214,14 @@ public interface ResponseWriter
         // In a r/w txn, web script buffered responses ensure that it doesn't really matter but for r/o txns this is important.
         res.setStatus(errorToWrite.getStatusCode());
 
+        // Avoid causing a browser to display a basic auth dialogue window when the user is unauthorized (REPO-2575)
+        if (errorToWrite.getStatusCode() == HttpStatus.SC_UNAUTHORIZED)
+        {
+            // 401 error must set WWW-Authenticate correctly, so as not to cause a basic-auth dialogue in browsers
+            // TODO: is realm mandatory or useful? If so, add to the header below.
+            res.setHeader("WWW-Authenticate", "AlfTicket");
+        }
+        
         jsonHelper.withWriter(res.getOutputStream(), new JacksonHelper.Writer()
         {
             @SuppressWarnings("unchecked")
