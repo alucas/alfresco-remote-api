@@ -490,7 +490,10 @@ public class TestCMIS extends EnterpriseTestApi
         }
         if(expectedMissingSecondaryTypes != null)
         {
-            assertTrue("Expected missing secondary types but at least one is still present: " + secondaryTypes, !secondaryTypes.containsAll(expectedMissingSecondaryTypes));
+            for (String type : expectedMissingSecondaryTypes)
+            {
+                assertFalse("Should not contain secondary type "+type+", but does: "+secondaryTypes, secondaryTypes.contains(type));
+            }
         }
     }
 
